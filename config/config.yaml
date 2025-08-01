@@ -1,0 +1,5 @@
+data_path: data/spam_ham_dataset.csv
+test_size: 0.2
+random_state: 42
+max_features: 5000
+model_type: LogisticRegression
