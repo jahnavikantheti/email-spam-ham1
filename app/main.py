@@ -8,20 +8,20 @@ import os
 app = FastAPI(title="Email Spam-Ham Classifier API")
 
 # -------------------- CORS Configuration --------------------
-# Add your frontend domain here when deployed (can add * for testing)
+# Only domains, no endpoint paths
 origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "https://emailspamham.azurewebsites.net",
-    "https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net/predict",
+    "https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        # specify allowed origins
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],          # allow all HTTP methods
-    allow_headers=["*"],          # allow all headers
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # -------------------- Load Model and Vectorizer --------------------
@@ -48,9 +48,6 @@ class EmailRequest(BaseModel):
 # -------------------- Prediction Route --------------------
 @app.post("/predict")
 def predict_email(req: EmailRequest):
-    """
-    Predict whether an email is spam or ham.
-    """
     try:
         vect_text = vectorizer.transform([req.text])
         prediction = model.predict(vect_text)[0]
