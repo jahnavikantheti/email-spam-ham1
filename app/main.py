@@ -1,29 +1,39 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.requests import Request
 from pydantic import BaseModel
 import joblib
 import os
 
-# Initialize FastAPI app
+# -------------------- Initialize FastAPI app --------------------
 app = FastAPI(title="Email Spam-Ham Classifier API")
+
+
+# -------------------- Preflight Handler --------------------
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(request: Request, rest_of_path: str = ""):
+    return JSONResponse(status_code=200, content={})
+
 
 # -------------------- CORS Configuration --------------------
 # Only domains, no endpoint paths
 origins = [
     "http://127.0.0.1:5500",
-    "*"
     "http://localhost:5500",
     "https://emailspamham.azurewebsites.net",
     "https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net",
+    "*"  # Enable for testing only, remove in production for security
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],          
-    allow_headers=["*"],          
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 # -------------------- Load Model and Vectorizer --------------------
 MODEL_PATH = "model/model.pkl"
@@ -37,14 +47,17 @@ else:
         "Model or vectorizer file not found. Please train the model first and include .pkl files in your repo."
     )
 
+
 # -------------------- Root Endpoint --------------------
 @app.get("/")
 def home():
     return {"message": "✅ Email Spam-Ham API is running! Use POST /predict to classify emails."}
 
+
 # -------------------- Input Schema --------------------
 class EmailRequest(BaseModel):
     text: str
+
 
 # -------------------- Prediction Route --------------------
 @app.post("/predict")
