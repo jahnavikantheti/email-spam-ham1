@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import joblib
 import os
 
-# Initialize FastAPI app
+# -------------------- Initialize FastAPI app --------------------
 app = FastAPI(title="Email Spam-Ham Classifier API")
 
 # -------------------- CORS Configuration --------------------
@@ -44,30 +44,35 @@ else:
 # -------------------- Root Endpoint --------------------
 @app.get("/")
 def home():
-    return {"message": "✅ Email Spam-Ham API is running! Use POST /predict to classify emails."}
+    return {"message": "✅ Email Spam-Ham API is running! Use GET/POST /predict to classify emails."}
 
 # -------------------- Input Schema --------------------
 class EmailRequest(BaseModel):
     text: str
 
-# -------------------- Prediction Route (POST) --------------------
-@app.post("/predict")
-def predict_email(req: EmailRequest):
+# -------------------- Combined Prediction Endpoint --------------------
+@app.api_route("/predict", methods=["GET", "POST"])
+async def predict_email(request: Request):
+    """
+    Supports both GET and POST:
+    - GET: /predict?text=hello
+    - POST: JSON {"text":"hello"}
+    """
     try:
-        vect_text = vectorizer.transform([req.text])
-        prediction = model.predict(vect_text)[0]
-        label = "spam" if prediction == 1 else "ham"
-        return {"prediction": label}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        if request.method == "GET":
+            text = request.query_params.get("text")
+        else:  # POST
+            data = await request.json()
+            text = data.get("text")
 
-# -------------------- Prediction Route (GET) --------------------
-@app.get("/predict")
-def predict_email_get(text: str):
-    try:
+        if not text:
+            raise HTTPException(status_code=400, detail="Text input is required")
+
         vect_text = vectorizer.transform([text])
         prediction = model.predict(vect_text)[0]
         label = "spam" if prediction == 1 else "ham"
+
         return {"prediction": label}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
