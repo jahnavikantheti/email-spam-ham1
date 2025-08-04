@@ -46,7 +46,7 @@
         async function predict() {
             const emailText = document.getElementById('emailInput').value;
             const response = await fetch('https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net/predict', {
-                method: 'POST',
+                method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: emailText })
             });
