@@ -26,6 +26,12 @@
             font-size: 18px;
             font-weight: bold;
         }
+
+        #loading {
+            display: none;
+            color: blue;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -33,26 +39,44 @@
     <h1>Email Spam or Ham Classifier</h1>
     <textarea id="emailInput" placeholder="Enter your email text here..."></textarea><br>
     <button onclick="predict()">Predict</button>
+    <div id="loading">Processing...</div>
     <div id="result"></div>
 
     <script>
-
-
-
-
-
-
-
         async function predict() {
             const emailText = document.getElementById('emailInput').value;
-            const response = await fetch('https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net/predict', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: emailText })
-            });
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
 
-            const result = await response.json();
-            document.getElementById('result').innerText = `Prediction: ${result.prediction}`;
+            // Clear old result & show loading
+            resultDiv.innerText = "";
+            loadingDiv.style.display = "block";
+
+            try {
+                const response = await fetch(
+                    'https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net/predict',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: emailText })
+                    }
+                );
+
+                loadingDiv.style.display = "none";
+
+                if (!response.ok) {
+                    resultDiv.innerText = `Error: ${response.status} ${response.statusText}`;
+                    return;
+                }
+
+                const result = await response.json();
+                resultDiv.innerText = `Prediction: ${result.prediction}`;
+
+            } catch (error) {
+                loadingDiv.style.display = "none";
+                resultDiv.innerText = "Error: Unable to connect to the API.";
+                console.error(error);
+            }
         }
     </script>
 </body>
