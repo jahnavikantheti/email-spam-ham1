@@ -3,33 +3,54 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Spam Classifier</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
         }
 
         textarea {
             width: 100%;
             height: 150px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
         }
 
         button {
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005a9e;
         }
 
         #result {
             margin-top: 20px;
             font-size: 18px;
             font-weight: bold;
+            text-align: center;
         }
 
         #loading {
             display: none;
             color: blue;
+            text-align: center;
             margin-top: 10px;
         }
     </style>
@@ -44,37 +65,43 @@
 
     <script>
         async function predict() {
-            const emailText = document.getElementById('emailInput').value;
+            const emailText = document.getElementById('emailInput').value.trim();
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
 
             // Clear old result & show loading
             resultDiv.innerText = "";
+            if (!emailText) {
+                resultDiv.innerText = "⚠ Please enter some text!";
+                return;
+            }
             loadingDiv.style.display = "block";
 
             try {
-                const response = await fetch(
-                    'https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net/predict',
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: emailText })
-                    }
-                );
+                // Auto-detect API base URL
+                const apiBase = window.location.origin.includes("azurewebsites.net")
+                    ? window.location.origin
+                    : "http://127.0.0.1:8000";
+
+                const response = await fetch(`${apiBase}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: emailText })
+                });
 
                 loadingDiv.style.display = "none";
 
                 if (!response.ok) {
-                    resultDiv.innerText = `Error: ${response.status} ${response.statusText}`;
+                    resultDiv.innerText = `❌ Error: ${response.status} ${response.statusText}`;
                     return;
                 }
 
                 const result = await response.json();
-                resultDiv.innerText = `Prediction: ${result.prediction}`;
+                resultDiv.innerText = `✅ Prediction: ${result.prediction.toUpperCase()}`;
 
             } catch (error) {
                 loadingDiv.style.display = "none";
-                resultDiv.innerText = "Error: Unable to connect to the API.";
+                resultDiv.innerText = "❌ Error: Unable to connect to the API.";
                 console.error(error);
             }
         }
