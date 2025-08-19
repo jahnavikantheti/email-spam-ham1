@@ -12,8 +12,8 @@ app = FastAPI(title="Email Spam-Ham Classifier API")
 origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
-    "https://emailspamham.azurewebsites.net",
-    "https://emailspamham-1-hea6f7d6hecpa4fv.canadacentral-01.azurewebsites.net",
+    "https://mlops-email-spam.azurewebsites.net",
+     "https://mlops-email-spam-exc3epcmbya0bnan.centralindia-01.azurewebsites.net/",
 ]
 
 app.add_middleware(
